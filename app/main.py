@@ -1,22 +1,19 @@
-from datetime import datetime
+from typing import Any
 from app.errors import NotVaccinatedError
 from app.errors import OutdatedVaccineError
+from app.errors import NotWearingMaskError
 from app.cafe import Cafe
 
 
-def go_to_cafe(friends: list, cafe: Cafe) -> str:
+def go_to_cafe(friends: list, cafe: Cafe) -> Any:
+    masks_to_buy = 0
     for friend in friends:
         try:
-            if "vaccine" not in friend:
-                raise NotVaccinatedError("Visitor is not vaccinated")
-            if friend["vaccine"]["expiration_date"] < datetime.now().date():
-                raise OutdatedVaccineError("Vaccine is expired")
+            cafe.visit_cafe(friend)
         except (NotVaccinatedError, OutdatedVaccineError):
             return "All friends should be vaccinated"
-
-    masks_to_buy = sum(
-        1 for friend in friends if not friend.get("wearing_a_mask", False))
+        except NotWearingMaskError:
+            masks_to_buy += 1
     if masks_to_buy > 0:
         return f"Friends should buy {masks_to_buy} masks"
-
     return f"Friends can go to {cafe.name}"
